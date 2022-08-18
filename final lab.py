@@ -1,31 +1,25 @@
 """ 
 COMP 593 - Final Project
-
 Description: 
   Downloads NASA's Astronomy Picture of the Day (APOD) from a specified date
   and sets it as the desktop background image.
-
 Usage:
   python apod_desktop.py image_cache_path [apod_date]
-
 Parameters:
   image_cache_path = Full path of the image cache directory
   apod_date = APOD date (format: YYYY-MM-DD)
-
 History:
   Date        Author    Description
   2022-05-09  J.Dalby   Initial creation
   2022-08-16  H.Wood    Finishing project
 """
-from email.mime import image
-from genericpath import isfile
+
 from os import path
 from sys import argv, exit
-from datetime import datetime, date
-import hashlib
-from os import makedirs
-from ctypes import windll
-from urllib import request
+from  datetime import datetime, date
+from hashlib import sha256
+from os import path, makedirs
+import ctypes
 import requests
 import sqlite3
 import re
@@ -138,23 +132,24 @@ def get_apod_image_path(image_cache_path, image_title, image_url):
 
 def get_apod_info(apod_date):
     
-    print('Getting image info for NASA ... Please stand by...', end='')
+    print("Getting APOD information from NASA...", end='')
 
     NASA_API_KEY = 'tz6CvXkLfg4etTXfvIZSOFaGDi6Cmm9BT393j05V'
-    APOD_URL = 'https://api.nasa.gov/planetary/apod'
+    APOD_URL = "https://api.nasa.gov/planetary/apod"
     apod_params = {
-        'api_key': NASA_API_KEY,
-        'date': apod_date,
-        'thumbs': True
+        'api_key' : NASA_API_KEY,
+        'date' : apod_date,
+        'thumbs' : True
     }
     
     resp_msg = requests.get(APOD_URL, params=apod_params)
     if resp_msg.status_code == requests.codes.ok:
         print('success')
     else:
-        print('Failure Code', resp_msg.status_code)
-        exit('Script aported')
+        print('failure code:', resp_msg.status_code)    
+        exit('Script execution aborted')
 
+    # Convert the received info into a dictionary 
     apod_info_dict = resp_msg.json()
     return apod_info_dict
    
@@ -180,55 +175,71 @@ def print_apod_info(image_url, image_title, image_path, image_size, image_sha256
     print('Image saved to:', image_path)
 
 def create_apod_image_cache_db(db_path):
-    
-    #student todo
-    return #TODO
+
+    con = sqlite3.connect(db_path)
+    con.commit
+    con.close
 
 def add_apod_to_image_cache_db(db_path, image_title, image_path, image_size, image_sha256):
     
-    #student todo
-    return #TODO
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute(''' CREATE TABLE IF NOT EXISTS Image (title TEXT, path BLOB, size INTEGER, sha256 BLOB);''')
+    Apod_info = [image_title, image_path, image_size, image_sha256]
+    add_apod_data = '''INSERT INTO Image (title, path, size, sha256) VALUES(?, ?, ?, ?);'''
+    cur.execute(add_apod_data, Apod_info)
+    con.commit
+    con.close
 
 def apod_image_already_in_cache(db_path, image_sha256):
    
-    #student todo
-    return False #TODO
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    try:
+        cur.execute('''SELECT Image WHERE sha256 = VALUES(?)''',(image_sha256))
+    except:
+        return False
+    else:
+        return True
 
 def get_image_size(image_data):
    
-    #student todo (1 line of code)
-    return 'TODO'
+    return (len(image_data))
+    
 
 def get_image_sha256(image_data):
     
-    hashlib.sha256(image_data).hexdigest()
+    return sha256(image_data).hexdigest().upper()
     
-
 def download_image_from_url(image_url):
     
-    print('downloading image for NASA...', end='')
+    print("Downloading APOD image from NASA...", end='')
+
+    # Send GET request to download the image
     resp_msg = requests.get(image_url)
 
+    # Check if the image was retrieved successfully
     if resp_msg.status_code == requests.codes.ok:
         print('success')
     else:
-        print('Failure Code', resp_msg.status_code)
-        exit('Script aborted')
+        print('failure code:', resp_msg.status_code)    
+        exit('Script execution aborted')
+
+    return resp_msg.content
 
 def save_image_file(image_data, image_path):
     
     try:
-        print('Saving image to file cache...', end='')
+        print("Saving image file to cache...", end='')
         with open(image_path, 'wb') as fp:
             fp.write(image_data)
-        print('Success')
+        print("success")
     except:
-        print('Failure')
-        exit('Script aborted')
+        print("failure")
+        exit('Script execution aborted')
 
 def set_desktop_background_image(image_path):
    
-    #student todo
-    return # TODO
+    ctypes.windll.user32.SystemParametersInfoW(20, 0, image_path , 0)
 
 main()
