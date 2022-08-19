@@ -1,0 +1,14 @@
+day 1
+follwed robs instructions  for get_image_cache_path,get_apod_date(),get_apod_image_path,get_apod_info,get_apod_image_url,get_apod_image_title,print_apod_info
+ download_image_from_url and save_image_file
+day 2
+i finished set_desktop_background_image,get_image_sha256,get_image_size quickly create_apod_image_cache_db took a little longer and for the next
+day i have been strugleing with getting add_apod_to_image_cache_db to work
+day 3 
+i am still working on getting add_apod_to_image_cache_db to work 
+3 hours later and i still dont have it working
+after 3 more hours of trying diffent way to type out 
+f'INSERT INTO Image (title,path,size,sha256) VALUES({Apod_info})'
+i have not been able to get it to work (this being the last atempt i did)
+i have narowed it down to each variable missing "" (for exaple title being Example title not "example title" 0
+i tested it with the values of the variables in sqlite3 and they worked but i cannot get my scrpit to do the same  

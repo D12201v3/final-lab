@@ -177,6 +177,8 @@ def print_apod_info(image_url, image_title, image_path, image_size, image_sha256
 def create_apod_image_cache_db(db_path):
 
     con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute(''' CREATE TABLE IF NOT EXISTS Image ([title] TEXT PRIMARY KEY, [path] BLOB, [size] INTEGER, [sha256] BLOB);''')
     con.commit
     con.close
 
@@ -184,10 +186,12 @@ def add_apod_to_image_cache_db(db_path, image_title, image_path, image_size, ima
     
     con = sqlite3.connect(db_path)
     cur = con.cursor()
-    cur.execute(''' CREATE TABLE IF NOT EXISTS Image (title TEXT, path BLOB, size INTEGER, sha256 BLOB);''')
-    Apod_info = [image_title, image_path, image_size, image_sha256]
-    add_apod_data = '''INSERT INTO Image (title, path, size, sha256) VALUES(?, ?, ?, ?);'''
-    cur.execute(add_apod_data, Apod_info)
+    Apod_info = (image_title, image_path, image_size,image_sha256)
+    add_apod_data = ('''INSERT INTO Image (title, path, size, sha256) 
+                    VALUES
+                    (%s, %s, %s, %s)
+                    ''')
+    cur.execute(f'INSERT INTO Image (title,path,size,sha256) VALUES({Apod_info})')
     con.commit
     con.close
 
